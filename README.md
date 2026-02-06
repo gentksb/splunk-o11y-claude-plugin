@@ -26,7 +26,17 @@ claude plugin marketplace add gentksb/splunk-o11y-claude-plugin
 ### Step 2: Install the plugin
 
 ```bash
-claude plugin install splunk-o11y
+claude plugin install splunk-o11y@splunk-o11y
+```
+
+You can also specify the scope:
+
+```bash
+# User scope (default)
+claude plugin install splunk-o11y@splunk-o11y
+
+# Project scope (shared with team via .claude/settings.json)
+claude plugin install splunk-o11y@splunk-o11y --scope project
 ```
 
 ## Configuration
@@ -254,7 +264,7 @@ Splunk Observability Cloud APMの機能をClaude Codeから直接利用できる
 claude plugin marketplace add gentksb/splunk-o11y-claude-plugin
 
 # プラグインをインストール
-claude plugin install splunk-o11y
+claude plugin install splunk-o11y@splunk-o11y
 ```
 
 ### 設定
