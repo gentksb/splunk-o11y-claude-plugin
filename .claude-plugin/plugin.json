@@ -1,0 +1,17 @@
+{
+  "name": "splunk-o11y",
+  "description": "Splunk Observability Cloud APM skill for Claude Code. Retrieve service topology, traces, and service metrics (error rate, latency, throughput) via APM APIs.",
+  "version": "0.1.0",
+  "author": {
+    "name": "gentksb"
+  },
+  "homepage": "https://github.com/gentksb/splunk-o11y-claude-plugin",
+  "repository": "https://github.com/gentksb/splunk-o11y-claude-plugin.git",
+  "keywords": [
+    "splunk",
+    "observability",
+    "apm",
+    "tracing",
+    "monitoring"
+  ]
+}

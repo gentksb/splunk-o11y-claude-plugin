@@ -1,0 +1,302 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "version": "1.0.0",
+    "title": "Download APM traces",
+    "description": "API for retrieving APM traces by trace ID.\n\n## Requirements\n\n* You must have an organization access token with the API permission or a session token to use the API.\n* You have to have the Splunk Observability Cloud admin, power, or read_only role to download traces using these endpoints.\n",
+    "x-description": "API for retrieving APM traces by trace ID. When you retrieve data for a\ntrace ID, the API exports everything in JSON.\n\nTo learn more about using this API, see [Download APM traces](https://quickdraw.splunk.com/redirect/?product=Observability&location=apm-download-traces-guide&version=current) in the Developer Guide. \n\nRate limits apply to the API. If you exceed the limit, the API returns a 429 response.\n\n## Requirements\n\n* You must have an organization access token with the API permission or a session token to use the API.\n* You have to have the Splunk Observability Cloud admin, power, or read_only role to download traces using these endpoints.\n"
+  },
+  "servers": [
+    {
+      "url": "https://api.{REALM}.signalfx.com/v2",
+      "description": "Base API URL."
+    }
+  ],
+  "tags": [
+    {
+      "name": "GetTraceById",
+      "description": "Download trace spans by segmentTimestamp.",
+      "x-description": "Download trace spans by segmentTimestamp."
+    }
+  ],
+  "paths": {
+    "/apm/trace/{traceId}/segments": {
+      "get": {
+        "tags": [
+          "Get trace segments for a specific trace ID."
+        ],
+        "summary": "Get trace segments for a specific trace ID.",
+        "description": "Retrieve every `segmentTimestamp` for a specific trace ID.",
+        "x-description": "Retrieve every `segmentTimestamp` for the trace ID\nspecified in the `{traceId}` path parameter.\n\nNote: Splunk Observability Cloud returns a maximum of 10,000 trace segments for the specified ID, even if your organization contains more than 10,000. To learn more, see the\n[Considerations for retrieve operations](https://dev.splunk.com/observability/docs/apibasics/retrieve_data_basics#Considerations-for-retrieve-operations) section in the developer guide.\n",
+        "operationId": "getTraceSegmentTimestamps",
+        "parameters": [
+          {
+            "name": "X-SF-TOKEN",
+            "in": "header",
+            "description": "Authentication token\n",
+            "x-description": "Authentication token\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "traceId",
+            "in": "path",
+            "description": "The trace ID",
+            "x-description": "ID of the trace for which you want to retrieve segments\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "x-description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SegmentTimestampList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No traces are available.",
+            "x-description": "No traces are available."
+          },
+          "429": {
+            "description": "Too many requests.",
+            "x-description": "Too many requests."
+          }
+        }
+      }
+    },
+    "/apm/trace/{traceId}/{segmentTimestamp}": {
+      "get": {
+        "tags": [
+          "Get trace content for a specific trace segment."
+        ],
+        "summary": "Retrieve trace content for a specific trace segment",
+        "description": "Retrieve all persisted spans for a specific `segmentTimestamp`.",
+        "x-description": "Retrieve persisted spans for a trace segment identified\nby the `segmentTimestamp` path parameter.\n\nNote: Splunk Observability Cloud returns a maximum of 10,000 persisted spans for the specified segment, even if your organization contains more than 10,000. To learn more, see the\n[Considerations for retrieve operations](https://dev.splunk.com/observability/docs/apibasics/retrieve_data_basics#Considerations-for-retrieve-operations) section in the developer guide.\n\n\nGET `v2/trace/{traceId}/{segmentTimestamp}` can return either `application/json` or `application/x-ndjson`\nas the media type for the response body. To choose a media type, specify the `Accept` HTTP header\nfield in your request. If you don't specify the `Accept` field, the endpoint returns the `application/json`\nmedia type:\n\n* To receive a list of spans as a JSON array of span objects, specify `Accept: application/json` in your\n  HTTP request header. You can also omit the `Accept` field, and the endpoint defaults to `application/json`.\n* To receive a list of spans as a JSON object in which each span object is delimited by a newline,\n  specify `Accept: application/x-ndjson` in your HTTP request header. To learn more about about the\n  `application/x-ndjson` media type, see\n  [NDJSON - Newline delimited JSON](https://github.com/ndjson/ndjson-spec).\n",
+        "operationId": "getSegment",
+        "parameters": [
+          {
+            "name": "X-SF-TOKEN",
+            "in": "header",
+            "description": "Authentication token\n",
+            "x-description": "Authentication token\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "traceId",
+            "in": "path",
+            "description": "The trace ID",
+            "x-description": "The trace ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "segmentTimestamp",
+            "in": "path",
+            "description": "A `segmentTimestamp` for a trace segment in int64 (long) format.",
+            "x-description": "A `segmentTimestamp` for a trace segment in int64 (long) format.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "x-description": "Success. The media type format of the response depends on the value\nyou specify for the `Accept` field in your HTTP request header. To learn\nmore, see the description of GET `/apm/trace/{traceId}/{segmentTimestamp}`\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceObjectList"
+                }
+              },
+              "application/x-ndjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceObjectList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The trace segment doesn't exist.",
+            "x-description": "The trace segment doesn't exist."
+          },
+          "429": {
+            "description": "Too many requests.",
+            "x-description": "Too many requests."
+          }
+        }
+      }
+    },
+    "/apm/trace/{traceId}/latest": {
+      "get": {
+        "tags": [
+          "Get the most recent trace segment."
+        ],
+        "summary": "Get the most recent trace segment.",
+        "description": "Get the most recent trace segment.",
+        "x-description": "Get all persisted spans for the most recent `segmentTimestamp`.\n\nGET `v2/trace/{traceId}/latest` can return either `application/json` or `application/x-ndjson`\nas the media type for the response body. To choose a media type, specify the `Accept` HTTP header\nfield in your request. If you don't specify the `Accept` field, the endpoint returns the `application/json`\nmedia type:\n\n* To receive a list of spans as a JSON array of span objects, specify `Accept: application/json` in your\n  HTTP request header. You can also omit the `Accept` field, and the endpoint defaults to `application/json`.\n* To receive a list of spans as a JSON object in which each span object is delimited by a newline,\n  specify `Accept: application/x-ndjson` in your HTTP request header. To learn more about about the\n  `application/x-ndjson` media type, see [NDJSON - Newline delimited JSON](https://github.com/ndjson/ndjson-spec).\n",
+        "operationId": "getLatestSegment",
+        "parameters": [
+          {
+            "name": "X-SF-TOKEN",
+            "in": "header",
+            "description": "Authentication token\n",
+            "x-description": "Authentication token\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "traceId",
+            "in": "path",
+            "description": "The trace ID.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceObjectList"
+                }
+              },
+              "application/x-ndjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceObjectList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The trace segment doesn't exist.",
+            "x-description": "The trace segment doesn't exist."
+          },
+          "429": {
+            "description": "Too many requests.",
+            "x-description": "Too many requests."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Span": {
+        "type": "object",
+        "properties": {
+          "objectType": {
+            "type": "string",
+            "description": "Indicates the type of returned object. This is set to 'span' for span objects.\n"
+          },
+          "traceId": {
+            "type": "string",
+            "description": "Trace ID, in hexadecimal\n"
+          },
+          "spanId": {
+            "type": "string",
+            "description": "Span ID, in hexadecimal"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "ID of the parent span, in hex. If there's no parent\nspan, the value is `\"null\"`.\n"
+          },
+          "serviceName": {
+            "type": "string",
+            "description": "Service that executed the span."
+          },
+          "operationName": {
+            "type": "string",
+            "description": "Name of the operation for the span.\n"
+          },
+          "startTime": {
+            "type": "string",
+            "description": "Start time of the span, in ISO-8601 format with\nprecision up to six decimal places.\n"
+          },
+          "durationMicros": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The span duration in microseconds. The integer is in int64 (long) format.\n"
+          },
+          "tags": {
+            "type": "object",
+            "description": "A map from string to object, containing the key-value pairs of span tags.\n"
+          },
+          "processTags": {
+            "type": "object",
+            "description": "A map from string to object, containing the key/value pairs of process tags.\n"
+          },
+          "logs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Log"
+            },
+            "description": "Log annotations for the span\n"
+          },
+          "splunk": {
+            "type": "object",
+            "description": "A map from string to object, containing key/value pairs for any Splunk-specific metadata about the span.\n"
+          }
+        }
+      },
+      "Log": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "description": "The timestamp associated with the log, in ISO-8601 format with precision up to six decimal places.\n"
+          },
+          "fields": {
+            "type": "object",
+            "description": "A map from string to object, containing the key/value pairs of the log.\n"
+          }
+        }
+      },
+      "TraceObject": {
+        "type": "object",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Span"
+          }
+        ]
+      },
+      "TraceObjectList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/TraceObject"
+        },
+        "description": "An Array of JSON objects, each of which contains a type of trace data."
+      },
+      "SegmentTimestampList": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "description": "A list of all `segmentTimestamp` values for a trace ID in int64 (long) format. Use\na value as the query parameter for `/v2/apm/trace/{traceId}/{segmentTimestamp}`\nto retrieve spans for a specific trace segment.\n"
+      }
+    }
+  }
+}

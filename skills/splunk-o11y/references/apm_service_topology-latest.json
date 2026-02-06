@@ -1,0 +1,514 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "version": "3.0.1",
+    "title": "APM service topology API",
+    "description": "APIs to retrieve the upstream and downstream dependencies for a given service, as well as to retrieve the complete graph-based topology of all services in a given environment and time window. You can also use tagFilters to filter this topology by indexed span tags.\n\n## Requirements\n\n* You must have an organization access token with the API permission or a session token to use the API.\n* You have to have the Splunk Observability Cloud admin, power, or read_only role to use the APM Service Topology endpoints.\n",
+    "x-description": "APIs to retrieve the upstream and downstream dependencies for a given service, as well as to retrieve the complete graph-based topology of all services in a given environment and time window. You can also use tagFilters to filter this topology by indexed span tags.\n\nTo learn about example use cases for this API, see [Retrieve service topology](https://dev.splunk.com/observability/docs/apm/service-topology/) in the developer guide.\n\n## Requirements\n\n* You must have an organization access token with the API permission or a session token to use the API.\n* You have to have the Splunk Observability Cloud admin, power, or read_only role to use the APM Service Topology endpoints.\n"
+  },
+  "servers": [
+    {
+      "url": "https://api.{REALM}.signalfx.com/v2",
+      "x-comment": "Note: In the **servers** object, the `url` field must end with `v2`. Field patterns in the **paths** object must **not** start with `v2`.\n",
+      "description": "Base API URL for the APM service topology endpoint\n",
+      "x-description": "Base API URL for the APM service topology endpoint\n"
+    }
+  ],
+  "paths": {
+    "/apm/topology": {
+      "post": {
+        "tags": [
+          "Retrieve Topology"
+        ],
+        "summary": "Retrieves the topology for all services in the environment",
+        "description": "Retrieves the topology of all services for which the tag filters, environment, and time range match the provided parameters, providing the information necessary to reconstruct a graph of all active services requested.\n\nThis operation uses the POST method because it sends search criteria for retrieval in the request body.\n",
+        "x-description": "Retrieves the topology of all services for which the tag filters, environment, and time range match the provided parameters, providing the information necessary to reconstruct a graph of all active services requested.\n\nThis operation uses the POST method because it sends search criteria for retrieval in the request body.\n\nNote: For this operation, the API returns a maximum of 1,000 objects, even if your organization contains more than 1,000.\n",
+        "operationId": "Retrieve service topology",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/XSFToken"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/RetrieveTopologyRequestBody"
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/RetrieveServicesResponseBody"
+          },
+          "400": {
+            "$ref": "#/components/responses/400BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/401Unauthorized"
+          }
+        }
+      }
+    },
+    "/apm/topology/{serviceName}": {
+      "post": {
+        "tags": [
+          "Retrieve Dependencies for ServiceName"
+        ],
+        "summary": "Retrieves the inbound and outbound dependencies for a specific service\n",
+        "description": "Given a time window and a set of tags, retrieve the inbound and outbound dependencies for the service identified in the `{serviceName}` path parameter. The results don't include transitive dependencies.\n\nThis operation uses the POST method because it sends search criteria for retrieval in the request body.\n\n**Note:** If the `serviceName` provided in the path parameter is not found, the API returns a 200 error code and an empty response.\n",
+        "x-description": "Given a time window and a set of tags, retrieve the inbound and outbound dependencies for the service identified in the `{serviceName}` path parameter. The results don't include transitive dependencies.\n\nThis operation uses the POST method because it sends search criteria for retrieval in the request body.\n\n**Note:** If the `serviceName` provided in the path parameter is not found, the API returns a 200 status code and an empty response. \n",
+        "operationId": "Retrieve Dependencies by Service Name",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ServiceName"
+          },
+          {
+            "$ref": "#/components/parameters/XSFToken"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/RetrieveDependenciesRequestBody"
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/RetrieveSingleServiceResponseBody"
+          },
+          "400": {
+            "$ref": "#/components/responses/400BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/401Unauthorized"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "ServiceName": {
+        "name": "serviceName",
+        "in": "path",
+        "description": "Name of the service for which you want to retrieve dependencies\n",
+        "x-description": "Name of the service for which you want to retrieve dependencies\n",
+        "schema": {
+          "type": "string"
+        },
+        "required": true,
+        "example": "service_one"
+      },
+      "XSFToken": {
+        "name": "X-SF-Token",
+        "in": "header",
+        "description": "Authentication token\n",
+        "x-description": "Authentication token\n",
+        "schema": {
+          "type": "string"
+        },
+        "required": true
+      }
+    },
+    "requestBodies": {
+      "RetrieveTopologyRequestBody": {
+        "description": "Request body for POST `v2/apm/topology`\n",
+        "x-description": "Request body for POST `v2/apm/topology`\n",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "timeRange"
+              ],
+              "properties": {
+                "timeRange": {
+                  "$ref": "#/components/schemas/TimeRange"
+                },
+                "tagFilters": {
+                  "$ref": "#/components/schemas/TagFilters"
+                }
+              }
+            }
+          }
+        }
+      },
+      "RetrieveDependenciesRequestBody": {
+        "description": "Request body for POST `v2/apm/topology/{serviceName}`\n",
+        "x-description": "Request body for POST `v2/apm/topology/{serviceName}`\n",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "timeRange"
+              ],
+              "properties": {
+                "timeRange": {
+                  "$ref": "#/components/schemas/TimeRange"
+                },
+                "tagFilters": {
+                  "$ref": "#/components/schemas/TagFilters"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "RetrieveSingleServiceResponseBody": {
+        "description": "Response body for a successful request to retrieve inbound and outbound dependencies of a single service (POST `v2/apm/topology/{serviceName}`)",
+        "x-description": "Response body for a successful request to retrieve inbound and outbound dependencies of a single service (POST `v2/apm/topology/{serviceName}`)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "inbound": {
+                  "$ref": "#/components/schemas/Inbound"
+                },
+                "outbound": {
+                  "$ref": "#/components/schemas/Outbound"
+                },
+                "services": {
+                  "$ref": "#/components/schemas/Services"
+                }
+              }
+            }
+          }
+        }
+      },
+      "RetrieveServicesResponseBody": {
+        "description": "Response body for a successful request to retrieve the topology of all services matching the provided `tagFilter`(s) (POST `v2/apm/topology`)\n",
+        "x-description": "Response body for a successful request to retrieve the topology of all services matching the provided `tagFilter`(s) (POST `v2/apm/topology`)\n",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "nodes": {
+                  "$ref": "#/components/schemas/NodeArray"
+                },
+                "edges": {
+                  "$ref": "#/components/schemas/EdgeArray"
+                }
+              }
+            }
+          }
+        }
+      },
+      "400BadRequest": {
+        "description": "Response body for HTTP response code 400 \"Bad Request\". You receive\nthis response when you send an invalid request. For example, you receive\nthis response when you specify an invalid time range in a POST request\nto `v2/apm/topology/{serviceName}`. You also receive a 400 code error when \nyou include an unindexed tag name in a `tagFilter`. \n",
+        "x-description": "Response body for HTTP response code 400 \"Bad Request\". You receive\nthis response when you send an invalid request. For example, you receive\nthis response when you specify an invalid time range in a POST request\nto `v2/apm/topology/{serviceName}`.\n",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "x-description": "HTTP response code. Always `400`.\n",
+                  "type": "integer",
+                  "example": 400
+                },
+                "message": {
+                  "title": "Error message associated with HTTP response code 400\n",
+                  "description": "Error message\n",
+                  "x-description": "Descriptive message returned by the API.\n \n Expected values:\n \n* `timeRange is required`: Ensure your request includes the required `timeRange` field.\n* `Invalid delimiter used to split time range`: Ensure your `timeRange` field uses a forward slash (`/`) to delimit the start and end timestamps in the `timeRange` in your request.\n* `Invalid time range`: Ensure the `timeRange` field in your request is formatted correctly. \n* `time range must not be negative`: Ensure that the start timestamp occurs before the end timestamp. \n* `time range must be more than or equal to 5 minutes`: Ensure the `timeRange` field in your request is greater than or equal to 5 minutes. \n* `time range must be less than or equal to the trace retention limit`: Ensure the `timeRange` field in your request is less than or equal to the applicable trace retention limit.  \n* `invalid format for filter`: Ensure all `tagFilters` included in the request are formatted correctly. \n* `name is a mandatory field`: Ensure all `tagFilters` in your request contain the mandatory `name` field.  The required `name` field is missing from the request; ensure it is added. \n* `unsupported filter name`: Ensure all span tags listed in the `name` field of all `tagFilters` in your request are supported. This API currently supports the `sf_service`, `sf_environment`, `sf_kind`, and `sf_httpMethod` pre-configured tags, and any custom indexed tags. \n* `Invalid tag filter operator value`: Ensure that all `tagFilters` in your request use either the `in` or `equals` operator. Filters using the `in` operator must include a `values` field, and filters using the `equals` operator must include `value`.\n* `scope is a mandatory field`:  Ensure that all `tagFilters` in your request include the required `scope` field.\n* `value is a mandatory field`: Ensure that all `tagFilters` using the `equals` operator include the required `value` field.\n* `values is a mandatory field`: Ensure that all `tagFilters` using the `in` operator include the required `values` field.\n",
+                  "type": "string",
+                  "enum": [
+                    "timeRange is required",
+                    "Invalid delimiter used to split time range",
+                    "Invalid time range",
+                    "time range must not be negative",
+                    "time range must be more than or equal to 5 minutes",
+                    "time range must be less than or equal to the trace retention limit",
+                    "invalid format for filter",
+                    "name is a mandatory field",
+                    "unsupported filter name",
+                    "Invalid tag filter operator value",
+                    "scope is a mandatory field",
+                    "value is a mandatory field",
+                    "values is a mandatory field"
+                  ],
+                  "example": "invalid format for filter"
+                }
+              }
+            }
+          }
+        }
+      },
+      "401Unauthorized": {
+        "description": "Response body for HTTP response code 401 \"Unauthorized\". You receive this response when you send a request that contains an invalid authentication token. For example, you receive this response when you specify an authentication token that isn't associated with an administrator for your organization.\n",
+        "x-description": "Response body for HTTP response code 401 \"Unauthorized\". You receive this response when you send a request that contains an invalid authentication token. For example, you receive this response when you specify an authentication token that isn't associated with an administrator for your organization.\n",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "x-description": "HTTP response code. Always `401`.\n",
+                  "type": "integer",
+                  "example": 401
+                },
+                "message": {
+                  "x-description": "Response message. Always \"Unauthorized: Invalid token\"\n",
+                  "type": "string",
+                  "example": "Unauthorized: Invalid token"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Edge": {
+        "description": "Description of an interaction between two nodes in the topology,\nin the form of a JSON object\n",
+        "x-description": "Description of an interaction between two nodes in the topology,\nin the form of a JSON object\n",
+        "type": "object",
+        "properties": {
+          "fromNode": {
+            "description": "Name of the node from which the edge starts;\nequivalent to the name of the service that's the\norigin of the operation\n",
+            "x-description": "Name of the node from which the edge starts;\nequivalent to the name of the service that's the\norigin of the operation\n",
+            "type": "string",
+            "example": "service_start"
+          },
+          "toNode": {
+            "description": "Name of the node at which the edge ends;\nequivalent to the name of the service that's the\ndestination of the operation\n",
+            "x-description": "Name of the node at which the edge ends;\nequivalent to the name of the service that's the\ndestination of the operation\n",
+            "type": "string",
+            "example": "service_end"
+          }
+        }
+      },
+      "EdgeArray": {
+        "description": "List of interactions that occur between services (nodes) in the\ntopology\n",
+        "x-description": "List of interactions that occur between services (nodes) in the\ntopology, in the form of a JSON array of objects \n",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Edge"
+        }
+      },
+      "Inbound": {
+        "description": "For a specific service, a list of the inbound services on which the service depends, in the form of a JSON array\n",
+        "x-description": "For a specific service, a list of the inbound services on which the service depends, in the form of a JSON array\n",
+        "type": "array",
+        "items": {
+          "description": "Element of the list of inbound services, in the form of a unique service name\n",
+          "x-description": "Element of the list of inbound services, in the form of a unique service name\n",
+          "type": "string",
+          "example": "inbound_service"
+        }
+      },
+      "Inferred": {
+        "description": "Flag that indicates if the service is an inferred service\n",
+        "x-description": "Flag that indicates if the service is an inferred service\n",
+        "type": "boolean",
+        "example": false
+      },
+      "Node": {
+        "description": "Service (node) in the service topology\n",
+        "x-description": "Service (node) in the service topology\n",
+        "type": "object",
+        "properties": {
+          "serviceName": {
+            "$ref": "#/components/schemas/ServiceName"
+          },
+          "inferred": {
+            "$ref": "#/components/schemas/Inferred"
+          },
+          "type": {
+            "$ref": "#/components/schemas/Type"
+          }
+        }
+      },
+      "NodeArray": {
+        "description": "List of services that form the nodes of the service topology, \nin the form of a JSON array of objects\n",
+        "x-description": "List of services that form the nodes of the service topology,\nin the form of a JSON array of objects\n",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Node"
+        }
+      },
+      "Outbound": {
+        "description": "List of outbound dependencies\n",
+        "x-description": "For a specific service, a list of the outbound services that depend on the service,\nin the form of a JSON array of strings\n",
+        "type": "array",
+        "items": {
+          "description": "Element of the list of outbound services, in the form of the unique service name\n",
+          "x-description": "Element of the list of outbound services, in the form of the unique service name\n",
+          "type": "string",
+          "example": "outbound_service"
+        }
+      },
+      "Service": {
+        "x-description": "Properties of an individual service in the\ntopology or dependency list\n",
+        "type": "object",
+        "properties": {
+          "inferred": {
+            "$ref": "#/components/schemas/Inferred"
+          },
+          "serviceName": {
+            "$ref": "#/components/schemas/ServiceName"
+          },
+          "type": {
+            "$ref": "#/components/schemas/Type"
+          }
+        }
+      },
+      "ServiceName": {
+        "description": "Name of the service in the retrieved span\n",
+        "x-description": "Name of the service in the retrieved span data\n",
+        "type": "string",
+        "example": "service_five"
+      },
+      "Services": {
+        "description": "List of detail objects for each outbound and inbound service\n",
+        "x-description": "List of outbound and inbound services, in the form of a\nJSON array of JSON objects\n",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Service"
+        }
+      },
+      "EqualsTagFilter": {
+        "title": "Definition for tag filter using the `equals` operator.",
+        "description": "Map of properties for an individual tag filter, in the form of a JSON object. \n\n**Note**: The `operator` you include in `tagFilter` dictates whether to include the `value` or `values` field. When you provide the `equals` operator, you must include a single value as a string in the `value` field. When you provide the `in` operator, you must include a list of values as strings in the `values` field.  \n",
+        "x-description": "Map of properties for an individual tag filter, in the form of a JSON object. \n\n**Note**: The `operator` you include in `tagFilter` dictates whether to include the `value` or `values` field. When you provide the `equals` operator, you must include a single value as a string in the `value` field. When you provide the `in` operator, you must include a list of values as strings in the `values` field.  \n",
+        "type": "object",
+        "required": [
+          "name",
+          "operator",
+          "scope",
+          "value"
+        ],
+        "properties": {
+          "name": {
+            "description": "Name of span tag on which to filter. \n\nIn your tag filter(s), you can specify indexed tags, which are either pre-configured indexed tags or custom indexed tags. Supported pre-configured indexed tags in APM include \"sf_service\", \"sf_environment\", \"sf_httpMethod\", and \"sf_kind\".\n\nSearch is case-insensitive. \n\nIf you do not provide a filter on the tag \"sf_environment\", the API returns services in all environments. \n",
+            "x-description": "Name of span tag on which to filter. \n\nIn your tag filter(s), you can specify indexed tags, which are either pre-configured indexed tags or custom indexed tags. Pre-configured indexed tags in APM include \"sf_service\", \"sf_environment\", \"sf_httpMethod\", \"sf_kind\".\n\nSearch is case-insensitive. \n\nIf you do not provide a filter on the tag \"sf_environment\", the API returns services in all environments. \n",
+            "type": "string",
+            "example": "sf_service"
+          },
+          "scope": {
+            "description": "Scope of spans on which to filter, in the form of\nan enumerated string. The API accepts the following values:\n\n  * GLOBAL: Matches the first occurrence in all spans\n  * TIER: Matches the first occurrence in service-tier spans\n  * INCOMING: Matches the value on the incoming edge span of service tier spans\n  * SPAN: Matches the tag on each span within the trace\n\nThis is a mandatory field. \n",
+            "x-description": "Scope of spans on which to filter, in the form of\nan enumerated string. The API accepts the following values:\n\n  * GLOBAL: Matches the first occurrence in all spans\n  * TIER: Matches the first occurrence in service-tier spans\n  * INCOMING: Matches the value on the incoming edge span of service tier spans\n  * SPAN: Matches the tag on each span within the trace\n\nThis is a mandatory field. \n",
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "TIER",
+              "INCOMING",
+              "SPAN"
+            ],
+            "default": "GLOBAL",
+            "example": "SPAN"
+          },
+          "operator": {
+            "description": "Operator to apply in the filter. This is a mandatory field, and the two accepted values are `equals` and `in`. When you use the `equals` operator, you must use the `value` parameter and provide a single value as a string. When you use the `in` operator, you must use the `values` parameter and provide the values as strings in a JSON array. \n",
+            "x-description": "Operator to apply in the filter. This is a mandatory field, and the two accepted values are `equals` and `in`. When you use the `equals` operator, you must use the `value` parameter and provide a single value as a string. When you use the `in` operator, you must use the `values` parameter and provide the values as strings in a JSON array. \n",
+            "type": "string",
+            "enum": [
+              "equals"
+            ],
+            "example": "equals"
+          },
+          "value": {
+            "description": "When you use the `equals` operator, `value` is the value to compare to the provided span tag value. Search is case-sensitive. \n\nIf the `tagName` you specified is `sf_environment`, `value` must be a valid environment name.\n",
+            "x-description": "When you use the `equals` operator, `value` is the value to compare to the provided span tag value. Search is case-sensitive. \n\nIf the `tagName` you specified is `sf_environment`, `value` must be valid environment name.\n",
+            "type": "string",
+            "example": "checkoutService"
+          }
+        }
+      },
+      "InTagFilter": {
+        "title": "Definition for tag filter using the `in` operator.",
+        "description": "Map of properties for an individual tag filter, in the form of a JSON object. \n\n**Note**: The `operator` you include in `tagFilter` dictates whether to include the `value` or `values` field. When you provide the `equals` operator, you must include a single value as a string in the `value` field. When you provide the `in` operator, you must include a list of values as strings in the `values` field.  \n",
+        "x-description": "Map of properties for an individual tag filter, in the form of a JSON object. \n\n**Note**: The `operator` you include in `tagFilter` dictates whether to include the `value` or `values` field. When you provide the `equals` operator, you must include a single value as a string in the `value` field. When you provide the `in` operator, you must include a list of values as strings in the `values` field.  \n",
+        "type": "object",
+        "required": [
+          "name",
+          "operator",
+          "scope",
+          "values"
+        ],
+        "properties": {
+          "name": {
+            "description": "Name of span tag on which to filter. \n\nIn your tag filter(s), you can specify indexed tags, which are either pre-configured indexed tags or custom indexed tags. Pre-configured indexed tags in APM include \"sf_service\", \"sf_environment\", \"sf_httpMethod\", \"sf_kind\".\n\nSearch is case-insensitive. \n\nIf you do not provide a filter on the tag \"sf_environment\", the API returns services in all environments. \n",
+            "x-description": "Name of span tag on which to filter. \n\nIn your tag filter(s), you can specify indexed tags, which are either pre-configured indexed tags or custom indexed tags. Pre-configured indexed tags in APM include \"sf_service\", \"sf_environment\", \"sf_httpMethod\", \"sf_kind\". \n\nSearch is case-insensitive. \n\nIf you do not provide a filter on the tag \"sf_environment\", the API returns services in all environments. \n",
+            "type": "string",
+            "example": "sf_service"
+          },
+          "scope": {
+            "description": "Scope of spans on which to filter, in the form of\nan enumerated string. The API accepts the following values:\n\n  * GLOBAL: Matches the first occurrence in all spans\n  * TIER: Matches the first occurrence in service-tier spans\n  * INCOMING: Matches the value on the incoming edge span of service tier spans\n  * SPAN: Matches the tag on each span within the trace\n\nThis is a mandatory field. \n",
+            "x-description": "Scope of spans on which to filter, in the form of\nan enumerated string. The API accepts the following values:\n\n  * GLOBAL: Matches the first occurrence in all spans\n  * TIER: Matches the first occurrence in service-tier spans\n  * INCOMING: Matches the value on the incoming edge span of service tier spans\n  * SPAN: Matches the tag on each span within the trace\n\nThis is a mandatory field. \n",
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "TIER",
+              "INCOMING",
+              "SPAN"
+            ],
+            "default": "GLOBAL",
+            "example": "SPAN"
+          },
+          "operator": {
+            "description": "Operator to apply in the filter. This is a mandatory field, and the two accepted values are `equals` and `in`. When you use the `equals` operator, you must use the `value` parameter and provide a single value as a string. When you use the `in` operator, you must use the `values` parameter and provide the values as strings in a JSON array. \n",
+            "x-description": "Operator to apply in the filter. This is a mandatory field, and the two accepted values are `equals` and `in`. When you use the `equals` operator, you must use the `value` parameter and provide a single value as a string. When you use the `in` operator, you must use the `values` parameter and provide the values as strings in a JSON array.  \n",
+            "type": "string",
+            "enum": [
+              "in"
+            ],
+            "example": "in"
+          },
+          "values": {
+            "description": "When you use the `in` operator, `values` is the list of values to compare to the span tag values, in the form of a JSON array of strings. Search is case-sensitive. The value(s) corresponding to `tagName = \"sf_environment\"` must be valid environment name(s). \n",
+            "x-description": "When you use the `in` operator, `values` is the list of values to compare to the span tag values, in the form of a JSON array of strings. Search is case-sensitive. The value(s) corresponding to `tagName = \"sf_environment\"` must be valid environment name(s). \n",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": [
+                [
+                  "production",
+                  "staging"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "TagFilters": {
+        "description": "List of `tagFilters` to include in the request.\n",
+        "x-description": "List of `tagFilters` to include in the request.\n",
+        "type": "array",
+        "items": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/InTagFilter"
+            },
+            {
+              "$ref": "#/components/schemas/EqualsTagFilter"
+            }
+          ]
+        },
+        "example": [
+          {
+            "name": "sf_environment",
+            "operator": "equals",
+            "scope": "GLOBAL",
+            "value": "production"
+          }
+        ]
+      },
+      "TimeRange": {
+        "description": "Time range boundary for matching service dependencies\n",
+        "x-description": "Time range boundary for matching service dependencies, in either of these\ntwo forms:\n\n  * Two ISO 8601-formatted timestamps separated by a forward slash (`/`).\n  * Two *nix timestamps in milliseconds separate by a forward slash (`/`)\n\nFor both forms, the first timestamp is the start time of the range, and\nthe second timestamp is the end time. The query only matches spans that\nhave a timestamp between the start time and end time, inclusive.\n\nConsiderations:\n\n* The end time must be greater than the start time\n* The time range must satisfy the relationship `5 minutes < (endTime - startTime) < span retention period`.\n  The minimum time range is 5 minutes, and the maximum time range is the span retention period.\n",
+        "type": "string",
+        "format": "date-time",
+        "example": "2021-01-23T12:00:00Z/2021-01-24T00:00:00Z"
+      },
+      "Type": {
+        "description": "Type of the service\n",
+        "x-description": "Type of the service. The API returns one of the following values:\n\n  * service\n  * database\n  * pubsub\n",
+        "type": "string",
+        "enum": [
+          "service",
+          "database",
+          "pubsub"
+        ],
+        "example": "database"
+      }
+    }
+  }
+}

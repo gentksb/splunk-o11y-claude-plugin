@@ -1,0 +1,635 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "version": "3.2.0",
+    "title": "SignalFlow API",
+    "x-update-date": "* 2019-05-13\n* 2019-06-05\n* 2019-06-07\n* 2020-02-11: 3.2.0\n* 2021-10-11: 3.3.0\n",
+    "x-version-info": "* 2019-06-05: 3.1.0: DOCS-483: API docs - Revised Access Token limitations documentation\n* 2019-06-07: 3.1.0: DOCS-483: API docs - Revised Access Token limitations documentation\n  Simplified description of X-SF-Token\n* 2019-11-25: DOCS-170 and DOCS-172: Check and fix numeric sizes and minimums\n* 2020-02-11: 3.2.0: DOCS-636: Change description of preview detector in SignalFlow reference documentation\n* 2021-10-11: 3.3.0: DOCS-1214: Websocket GET /connect returns 101 Switching Protocols before 200 Success\n",
+    "description": "API for streaming data to SignalFlow and managing SignalFlow background\ncomputations.\n\n## Requirements\n\n* You must have an organization access token with the API permission or a session token to use the API.\n* You must have the Splunk Observability Cloud admin or power role to use the `POST /execute`, `POST /preflight`, `POST /{id}/stop`, `POST /{id}/stop`, and `POST /start` operations.\n",
+    "x-description": "API for streaming data to SignalFlow and managing SignalFlow background computations.\n\n## Requirements\n\n* You must have an organization access token with the API permission or a session token to use the API.\n* You must have the Splunk Observability Cloud admin or power role to use the `POST /execute`, `POST /preflight`, `POST /{id}/stop`, and `POST /{id}/stop` operations.\n"
+  },
+  "servers": [
+    {
+      "url": "https://stream.{REALM}.signalfx.com/v2/signalflow",
+      "description": "SignalFlow API endpoint URL\n",
+      "x-description": "Splunk Observability Cloud API endpoint.\n\nReplace `{REALM}` with the name of your realm.\nFor example, if your realm is `eu0`, use \n`https://stream.eu0.signalfx.com/v2/signalflow`.\n\nTo find your realm, go to your profile page in the user interface.\n\nIf you don't include a realm and use \n`https://stream.signalfx.com/v2/signalflow`, the API interprets the\nendpoint as pointing to the `us0` realm.\n"
+    }
+  ],
+  "paths": {
+    "/connect": {
+      "get": {
+        "summary": "Creates a WebSocket connection to SignalFlow",
+        "tags": [
+          "Create WebSocket Connection"
+        ],
+        "description": "Creates a WebSocket connection with which you can send SignalFlow programs to the system.\nThis request returns HTTP response code 101 if it's successful.\n\nAfter you have a successful connection, you need to authenticate using a WebSocket message. Send the following JSON within 5 seconds after connecting:\n\n```\n{\n    \"type\": \"authenticate\",\n    \"token\": \"AUTH_TOKEN\"\n}\n```\n\nIf the system drops the connection for any reason, connect and authenticate\nagain. After you start a SignalFlow program, a connection drop doesn't stop the program.\nIf you connect and authenticate again and the authentication fails, the system\ncloses the connection and terminates all programs you sent.\n\n> Note: Only use this request if you're using WebSocket to communicate with SignalFlow.\n> If you're using REST and SSE, you don't need a WebSocket connection.\n",
+        "x-description": "Creates a WebSocket connection with which you can send SignalFlow programs to the system.\nThis request returns HTTP response code 101 if it's successful.\n\nAfter you have a successful connection, you need to authenticate using a WebSocket message. Send the following JSON within 5 seconds after connecting:\n\n```\n{\n    \"type\": \"authenticate\",\n    \"token\": \"AUTH_TOKEN\"\n}\n```\n\nIf the system drops the connection for any reason, connect and authenticate\nagain. After you start a SignalFlow program, a connection drop doesn't stop the program.\nIf you connect and authenticate again and the authentication fails, the system\ncloses the connection and terminates all programs you sent.\n\n> Note: Only use this request if you're using WebSocket to communicate with SignalFlow.\n> If you're using REST and SSE, you don't need a WebSocket connection.\n",
+        "operationId": "Create WebSocket Connection",
+        "responses": {
+          "101": {
+            "description": "Switching protocols\n",
+            "x-description": "Splunk Observability Cloud switched your HTTP connection to WebSocket.\nThe system doesn't return a response body.\n"
+          }
+        }
+      }
+    },
+    "/execute": {
+      "post": {
+        "summary": "Executes a SignalFlow computation",
+        "tags": [
+          "Execute SignalFlow Computation"
+        ],
+        "description": "Executes a SignalFlow program in a background job\n",
+        "x-description": "Executes the SignalFlow program in the request body and synchronously returns the data to awaiting client. Control the computation by specifying query parameters in\nthe request.\n\nNote: Due to the use of scientific notation in the API, the output of SignalFlow API calls doesn't exactly match the output from SignalFlow programs in charts in the UI.\n",
+        "operationId": "Execute SignalFlow computation",
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "description": "Either `\"text/plain\"` or `\"application/json\"`.\n",
+            "x-description": "Format of the request body. Either `\"text/plain\"` or `\"application/json\"`.\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "X-SF-Token",
+            "in": "header",
+            "description": "Authentication token\n",
+            "x-description": "Authentication token\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "Last-Event-ID",
+            "in": "header",
+            "description": "ID of the most recent Server-Sent Event (SSE) you received\n",
+            "x-description": "ID of the last Server-Sent Event you received. This value lets you\nresume a computation that's paused.\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Timestamp at which the job should start, in *nix time in milliseconds\n",
+            "x-description": "The date and time that the computation should start, in *nix time in milliseconds\n",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1557531030000,
+            "required": false
+          },
+          {
+            "name": "stop",
+            "in": "query",
+            "description": "Timestamp at which the job should stop, in *nix time in milliseconds\n",
+            "x-description": "The date and time that the computation should stop, in *nix time in milliseconds\n",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1557617430000,
+            "required": false
+          },
+          {
+            "name": "resolution",
+            "in": "query",
+            "description": "Minimum data resolution for the job, in milliseconds\n",
+            "x-description": "The minimum data resolution you want to use in the computation, in\nmilliseconds. To learn more about data resolution, see the\n[Splunk Infrastructure Monitoring Analytics](https://help.splunk.com/?resourceId=analytics_infrastructure-monitoring-analytics) topic\nin the user documentation.\n",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "required": false
+          },
+          {
+            "name": "maxDelay",
+            "in": "query",
+            "description": "Maximum computation wait time after input data stops arriving, in milliseconds\n",
+            "x-description": "The maximum time that you want the computation to wait after it\ndetects that input data has stopped arriving, in milliseconds. To\nget the automatic maximum, specify `0`. The maximum delay you can\nspecify yourself is `900000`, or 15 minutes.\n",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0,
+              "maximum": 900000
+            },
+            "required": false
+          },
+          {
+            "name": "immediate",
+            "in": "query",
+            "description": "Controls the stop timestamp\n",
+            "x-description": "Flag that controls the stop timestamp. If `true`, the flag overrides\nthe stop timestamp, and the computation doesn't wait for future\nincoming data\n",
+            "schema": {
+              "type": "boolean"
+            },
+            "required": false
+          },
+          {
+            "name": "timezone",
+            "in": "query",
+            "description": "Time zone to use for calendar window transformations\n",
+            "x-description": "Specifies which time zone SignalFlow should use as the basis of\ntime-related calculations in calendar window\ntransformation methods.\n\nFor a list of supported time zones, see the section\n[Time Zones Supported by Splunk Observability Cloud](https://dev.splunk.com/observability/docs/time_zone/).\n",
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "SignalFlow program to execute\n",
+          "x-description": "JSON object or string specifying the SignalFlow program to execute. Both `\"application/json\"` and `\"text/plain\"` media types are accepted.\n\nIf you use `\"text/plain\"`, provide the SignalFlow program as a string. For example, `\"A = data('trans.latency').mean().publish(); detect(when(A>threshold(5))).publish('detector_name')\"`.\n\nNote: The equivalent WebSocket request message is described in the [SignalFlow WebSocket API Request Messages](https://dev.splunk.com/observability/docs/signalflow/messages/websocket_request_messages)\ntopic in the Developer Guide\n",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgramTextInfo"
+              }
+            },
+            "text/plain": {
+              "schema": {
+                "type": "string"
+              },
+              "example": "A = data('trans.latency').mean().publish(); detect(when(A>threshold(5))).publish('detector_name')"
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success\n",
+            "x-description": "Computation execution successfully started. SignalFlow continues to issue SSE\nresponses until the computation is complete.\n"
+          },
+          "401": {
+            "description": "Missing session token. HTTP response code 401\n",
+            "x-description": "Unauthorized. You failed to specify a session token in the\n`X-SF-Token` header of the request.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "description": "Always \"You must use your user session\"\n",
+                      "x-description": "Always contains `\"You must use your user session\"`\n",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "HTTP response code 401\n",
+                      "x-description": "Always contains `401`\n",
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/preflight": {
+      "post": {
+        "summary": "Preview count of detector alerts",
+        "tags": [
+          "Preview Detector Alert Count"
+        ],
+        "description": "Preview the number of alerts generated by a detector SignalFlow program\n",
+        "x-description": "Generates a preview of the number of alerts a detector will generate\nduring a specified time period. In the UI, this feature is\ncalled **Alert Preview**. \n\nIn the request body, specify the detector you want to preview as plain\ntext or a JSON object containing a SignalFlow program with one or more \n`detect().publish()` output streams.\n\nNote: This is an asynchronous request that returns data to your client in the\nform of Server-Sent Event (SSE) messages. To learn more about these \nmessages, see the [SignalFlow Stream Messages Reference](https://dev.splunk.com/observability/docs/signalflow/messages/stream_messages_specification) topic\nin the Developer Guide.\n",
+        "operationId": "Preview Detector Alert Count",
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "description": "Either `\"text/plain\"` or `\"application/json\"`.\n",
+            "x-description": "Format of the request body. Either `\"text/plain\"` or `\"application/json\"`.\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "X-SF-Token",
+            "in": "header",
+            "description": "Authentication token\n",
+            "x-description": "Authentication token\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Preview start timestamp, in *nix time in milliseconds\n",
+            "x-description": "Preview start timestamp, in *nix time in milliseconds\n",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "required": true,
+            "example": 1556839830000
+          },
+          {
+            "name": "stop",
+            "in": "query",
+            "description": "Preview stop timestamp, in *nix time in milliseconds\n",
+            "x-description": "Preview stop timestamp, in *nix time in milliseconds\n",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1557012630000,
+            "required": true
+          },
+          {
+            "name": "maxDelay",
+            "in": "query",
+            "description": "Simulates a maximum computation wait time after input data stops arriving, in milliseconds\n",
+            "x-description": "Maximum time that the computation should wait after input data\nstops arriving, in milliseconds.\n",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "example": 20000,
+            "required": false
+          }
+        ],
+        "requestBody": {
+          "description": "SignalFlow program. Must contain at least one detect().publish().\n",
+          "x-description": "JSON object or text string containing a SignalFlow program that has one or more `detect().publish()` output streams. Both `\"application/json\"` and `\"text/plain\"` media types are accepted.\n\nIf you use `\"text/plain\"`, provide the SignalFlow program as a string. For example, `\"A = data('trans.latency').mean().publish(); detect(when(A>threshold(5))).publish('detector_name')\"`.\n",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgramTextInfo"
+              }
+            },
+            "text/plain": {
+              "schema": {
+                "type": "string",
+                "example": "A = data('trans.latency').mean().publish(); detect(when(A>threshold(5))).publish('detector_name')"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success\n",
+            "x-description": "Successful preview start. Splunk Observability Cloud continues to issue SSE return\nmessages until the preview is complete. To learn more about SSE\nmessages, see the [SignalFlow Stream Messages Reference](https://dev.splunk.com/observability/docs/signalflow/messages/stream_messages_specification) topic\nin the Developer Guide.\n"
+          },
+          "400": {
+            "description": "Invalid request\n",
+            "x-description": "Invalid request\n"
+          },
+          "401": {
+            "description": "Invalid authentication token\n",
+            "x-description": "Unauthorized. You failed to specify an authentication token in the\n`X-SF-Token` header of the request, or the authentication token is\ninvalid.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "description": "You must use your user session\n",
+                      "x-description": "Text string, always \"You must use your user session\".\n",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "HTTP response code 401\n",
+                      "x-description": "HTTP response code, always `401`\n",
+                      "type": "integer"
+                    }
+                  }
+                },
+                "example": {
+                  "code": 401,
+                  "message": "You must use your user session"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden\n",
+            "x-description": "Forbidden\n"
+          },
+          "429": {
+            "description": "Too many requests\n",
+            "x-description": "Too many requests\n"
+          }
+        }
+      }
+    },
+    "/{id}/feedback": {
+      "get": {
+        "summary": "Retrieves status and feedback messages for a computation\n",
+        "tags": [
+          "Retrieve Computation Feedback"
+        ],
+        "description": "Retrieves status and feedback messages for a job\n",
+        "x-description": "Retrieves status and feedback messages for a SignalFlow computation\n",
+        "operationId": "Retrieve Computation Feedback",
+        "parameters": [
+          {
+            "name": "X-SF-Token",
+            "in": "header",
+            "description": "Authentication token.\n",
+            "x-description": "Authentication token.\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the computation you want to access\n",
+            "x-description": "The computation ID returned in the `\"handle\" property in an SSE\nmessage.\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success\n",
+            "x-description": "Successful request for computation feedback. SignalFlow continues to\nsend SSE messages as the computation proceeds.\n"
+          }
+        }
+      }
+    },
+    "/{id}/stop": {
+      "post": {
+        "summary": "Stops a SignalFlow computation",
+        "tags": [
+          "Stop SignalFlow Computation"
+        ],
+        "description": "Stops a SignalFlow job identified by ID\n",
+        "x-description": "Stops a SignalFlow computation identified by its ID (computation\nhandle). The computation must belong to the same organization as the\nuser whose access token you used to start the computation.\n",
+        "operationId": "Stop SignalFlow Computation",
+        "parameters": [
+          {
+            "name": "X-SF-Token",
+            "in": "header",
+            "description": "Authentication token.\n",
+            "x-description": "Authentication token.\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "SignalFlow job ID\n",
+            "x-description": "The computation ID returned in the `\"handle\" property in an SSE \nmessage. SignalFlow stops the computation based on this ID.\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success\n",
+            "x-description": "Successful stop. For this response code, SignalFlow doesn't return a\nresponse body.\n"
+          },
+          "401": {
+            "description": "Invalid authentication token\n",
+            "x-description": "Unauthorized. You failed to specify a session token in the\n`X-SF-TOKEN` header of the request.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "description": "Error message\n",
+                      "x-description": "'\"You must use your user session\"'\n",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "HTTP response code 401\n",
+                      "x-description": "\"`401`\"\n",
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Computation ID not found\n",
+            "x-description": "SignalFlow was unable to find the specified computation.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "description": "\"message\" : \"HTTP 404 Not Found\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/start": {
+      "post": {
+        "summary": "Starts a SignalFlow computation",
+        "tags": [
+          "Start SignalFlow Computation"
+        ],
+        "description": "Starts a SignalFlow program in a background job\n",
+        "x-description": "Starts the SignalFlow program in the request body in the background and returns only running job ID. Control the computation by specifying query parameters in\nthe request.\n\nNote: Due to the use of scientific notation in the API, the output of SignalFlow API calls doesn't exactly match the output from SignalFlow programs in charts in the UI.\n",
+        "operationId": "Start SignalFlow computation",
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "description": "Either `\"text/plain\"` or `\"application/json\"`.\n",
+            "x-description": "Format of the request body. Either `\"text/plain\"` or `\"application/json\"`.\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "X-SF-Token",
+            "in": "header",
+            "description": "Authentication token\n",
+            "x-description": "Authentication token\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "Last-Event-ID",
+            "in": "header",
+            "description": "ID of the most recent Server-Sent Event (SSE) you received\n",
+            "x-description": "ID of the last Server-Sent Event you received. This value lets you\nresume a computation that's paused.\n",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Timestamp at which the job should start, in *nix time in milliseconds\n",
+            "x-description": "The date and time that the computation should start, in *nix time in milliseconds\n",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1557531030000,
+            "required": false
+          },
+          {
+            "name": "stop",
+            "in": "query",
+            "description": "Timestamp at which the job should stop, in *nix time in milliseconds\n",
+            "x-description": "The date and time that the computation should stop, in *nix time in milliseconds\n",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1557617430000,
+            "required": false
+          },
+          {
+            "name": "resolution",
+            "in": "query",
+            "description": "Minimum data resolution for the job, in milliseconds\n",
+            "x-description": "The minimum data resolution you want to use in the computation, in\nmilliseconds. To learn more about data resolution, see the\n[Splunk Infrastructure Monitoring Analytics](https://help.splunk.com/?resourceId=analytics_infrastructure-monitoring-analytics) topic\nin the user documentation.\n",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "required": false
+          },
+          {
+            "name": "maxDelay",
+            "in": "query",
+            "description": "Maximum computation wait time after input data stops arriving, in milliseconds\n",
+            "x-description": "The maximum time that you want the computation to wait after it\ndetects that input data has stopped arriving, in milliseconds. To\nget the automatic maximum, specify `0`. The maximum delay you can\nspecify yourself is `900000`, or 15 minutes.\n",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0,
+              "maximum": 900000
+            },
+            "required": false
+          },
+          {
+            "name": "timezone",
+            "in": "query",
+            "description": "Time zone to use for calendar window transformations\n",
+            "x-description": "Specifies which time zone SignalFlow should use as the basis of\ntime-related calculations in calendar window\ntransformation methods.\n\nFor a list of supported time zones, see the section\n[Time Zones Supported by Splunk Observability Cloud](https://dev.splunk.com/observability/docs/time_zone/).\n",
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "SignalFlow program to execute\n",
+          "x-description": "JSON object or string specifying the SignalFlow program to start. \"Both `\"application/json\"` and `\"text/plain\"` media types are accepted. \n\nIf you use `\"text/plain\"`, provide the SignalFlow program as a string. For example, `\"A = data('trans.latency').mean().publish(); detect(when(A>threshold(5))).publish('detector_name')\"`.\n\nNote: The equivalent WebSocket request message is described in the [SignalFlow WebSocket API Request Messages](https://dev.splunk.com/observability/docs/signalflow/messages/websocket_request_messages)\ntopic in the Developer Guide\n",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgramTextInfo"
+              }
+            },
+            "text/plain": {
+              "schema": {
+                "type": "string"
+              },
+              "example": "A = data('trans.latency').mean().publish(); detect(when(A>threshold(5))).publish('detector_name')"
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success\n",
+            "x-description": "Successfully started the SignalFlow computation. SignalFlow continues to issue SSE responses until the computation is complete.\n"
+          },
+          "401": {
+            "description": "Missing session token. HTTP response code 401\n",
+            "x-description": "Unauthorized. You failed to specify a session token in the\n`X-SF-Token` header of the request. \n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "description": "Always \"You must use your user session\"\n",
+                      "x-description": "Always contains `\"You must use your user session\"`\n",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "HTTP response code 401\n",
+                      "x-description": "Always contains `401`\n",
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ProgramTextInfo": {
+        "title": "Program Text Info",
+        "description": "SignalFlow program and arguments text strings\n",
+        "x-description": "SignalFlow program and arguments text strings\n",
+        "type": "object",
+        "required": [
+          "programText"
+        ],
+        "properties": {
+          "programText": {
+            "title": "SignalFlow program text string",
+            "description": "Text string containing a SignalFlow program that has one or more `detect().publish()` output streams.\n",
+            "x-description": "Text string containing a SignalFlow program that has one or more `detect().publish()` output streams.\n",
+            "type": "string",
+            "example": "A = data('trans.latency').mean(over=Args['ui.dashboard_window']).mean().publish(); detect(when(A>threshold(5))).publish('detector_name');"
+          },
+          "programArgs": {
+            "title": "SignalFlow program arguments",
+            "description": "Argument values for the SignalFlow program\n",
+            "x-description": "Argument values for the SignalFlow program. Use this property only when you use `Args` construct in `programText`.\n",
+            "type": "object",
+            "properties": {
+              "ui.dashboard_window": {
+                "title": "Chart width",
+                "description": "A time range value for the dashboard window transformation (`ui.dashboard_window`).\n",
+                "x-description": "A time range value for the dashboard window transformation (`ui.dashboard_window`).\n",
+                "type": "string",
+                "example": "10m"
+              }
+            },
+            "example": {
+              "ui.dashboard_window": "10m"
+            }
+          }
+        }
+      }
+    }
+  }
+}
