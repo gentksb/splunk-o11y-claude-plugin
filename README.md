@@ -17,8 +17,16 @@ A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin that prov
 
 ## Installation
 
+### Step 1: Add the marketplace
+
 ```bash
-claude plugin add github:gentksb/splunk-o11y-claude-plugin
+claude plugin marketplace add gentksb/splunk-o11y-claude-plugin
+```
+
+### Step 2: Install the plugin
+
+```bash
+claude plugin install splunk-o11y
 ```
 
 ## Configuration
@@ -242,7 +250,11 @@ Splunk Observability Cloud APMの機能をClaude Codeから直接利用できる
 ### インストール
 
 ```bash
-claude plugin add github:gentksb/splunk-o11y-claude-plugin
+# マーケットプレースを追加
+claude plugin marketplace add gentksb/splunk-o11y-claude-plugin
+
+# プラグインをインストール
+claude plugin install splunk-o11y
 ```
 
 ### 設定

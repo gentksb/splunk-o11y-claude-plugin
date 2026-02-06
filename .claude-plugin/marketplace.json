@@ -1,0 +1,26 @@
+{
+  "name": "splunk-o11y",
+  "metadata": {
+    "description": "Splunk Observability Cloud APM plugin for Claude Code"
+  },
+  "owner": {
+    "name": "gentksb",
+    "url": "https://github.com/gentksb"
+  },
+  "plugins": [
+    {
+      "name": "splunk-o11y",
+      "source": "./",
+      "description": "Retrieve service topology, traces, and service metrics via Splunk Observability Cloud APM APIs",
+      "version": "0.1.0",
+      "repository": "https://github.com/gentksb/splunk-o11y-claude-plugin.git",
+      "tags": [
+        "splunk",
+        "observability",
+        "apm",
+        "tracing",
+        "monitoring"
+      ]
+    }
+  ]
+}
