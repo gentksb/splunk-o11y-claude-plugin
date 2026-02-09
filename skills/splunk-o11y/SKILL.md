@@ -45,19 +45,19 @@ Splunk Observability CloudのAPM APIを使用してサービストポロジー�
 ### 全サービスのトポロジー
 
 ```bash
-python scripts/get_topology.py --environment production
+python3 scripts/get_topology.py --environment production
 ```
 
 ### 特定サービスの依存関係
 
 ```bash
-python scripts/get_topology.py --environment production --service my-service
+python3 scripts/get_topology.py --environment production --service my-service
 ```
 
 ### 時間範囲を指定
 
 ```bash
-python scripts/get_topology.py --environment production \
+python3 scripts/get_topology.py --environment production \
     --start-time 2024-01-01T00:00:00Z \
     --end-time 2024-01-01T12:00:00Z
 ```
@@ -67,19 +67,19 @@ python scripts/get_topology.py --environment production \
 ### トレースIDから最新スパンを取得
 
 ```bash
-python scripts/get_trace.py <trace-id>
+python3 scripts/get_trace.py <trace-id>
 ```
 
 ### セグメント一覧を取得
 
 ```bash
-python scripts/get_trace.py <trace-id> --segments
+python3 scripts/get_trace.py <trace-id> --segments
 ```
 
 ### 特定セグメントのスパンを取得
 
 ```bash
-python scripts/get_trace.py <trace-id> --segment-timestamp 1704067200000000
+python3 scripts/get_trace.py <trace-id> --segment-timestamp 1704067200000000
 ```
 
 ## サービスメトリクス取得
@@ -89,19 +89,19 @@ SignalFlow APIを使用して、APMサービスメトリクス（エラー率、
 ### エラー率（全サービス）
 
 ```bash
-python scripts/get_service_metrics.py --environment production --metric error-rate
+python3 scripts/get_service_metrics.py --environment production --metric error-rate
 ```
 
 ### P99レイテンシ（特定サービス）
 
 ```bash
-python scripts/get_service_metrics.py --environment production --metric latency --service checkout
+python3 scripts/get_service_metrics.py --environment production --metric latency --service checkout
 ```
 
 ### スループット（カスタム時間範囲）
 
 ```bash
-python scripts/get_service_metrics.py --environment production --metric throughput \
+python3 scripts/get_service_metrics.py --environment production --metric throughput \
     --start-time 2024-01-01T00:00:00Z --end-time 2024-01-01T01:00:00Z
 ```
 
