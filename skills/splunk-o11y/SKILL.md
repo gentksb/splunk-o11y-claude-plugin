@@ -1,11 +1,11 @@
 ---
 name: splunk-o11y
-description: Splunk Observability Cloud APM APIを使用してサービストポロジー、トレース、サービスメトリクス（エラー率・レイテンシ・スループット）を取得・分析するためのスキル。デバッグ時の問題特定、サービス依存関係の調査、環境別のサービス比較に使用。トレースID、サービス名、APM、依存関係、トポロジー、エラー率、レイテンシ、スループットなどのキーワードで起動。
+description: Splunk Observability Cloud APM APIとインフラメトリクスAPIを使用してサービストポロジー、トレース、サービスメトリクス（エラー率・レイテンシ・スループット）とインフラストラクチャメトリクスを取得・分析するためのスキル。デバッグ時の問題特定、サービス依存関係の調査、環境別のサービス比較、リソース逼迫の検知に使用。トレースID、サービス名、APM、依存関係、トポロジー、エラー率、レイテンシ、スループット、CPU、メモリ、ディスク、ネットワークなどのキーワードで起動。
 ---
 
-# Splunk Observability Cloud APM
+# Splunk Observability Cloud APM / Infrastructure Metrics
 
-Splunk Observability CloudのAPM APIを使用してサービストポロジー、トレース、サービスメトリクスを取得する。
+Splunk Observability CloudのAPM APIとインフラメトリクスAPIを使用してサービストポロジー、トレース、サービスメトリクス、ホスト/コンテナのリソースメトリクスを取得する。
 
 ## 環境設定
 
@@ -133,6 +133,62 @@ python3 scripts/get_service_metrics.py --environment production --metric through
 }
 ```
 
+## インフラメトリクス解析
+
+SignalFlow APIとMTSデータポイント取得APIを使用して、ホスト/コンテナのCPU、メモリ、ディスク、ネットワークなどのインフラメトリクスを取得・分析する。
+
+### 利用するRead系API
+
+- **SignalFlow** (SSE/REST): `POST https://stream.{REALM}.signalfx.com/v2/signalflow/execute`
+  - リクエストヘッダ: `X-SF-Token`
+  - リクエストボディ: `programText` (SignalFlow) と `programArgs`
+  - 例: `data('cpu.utilization').mean().publish()`
+- **MTS データポイント取得**: `GET https://api.{REALM}.signalfx.com/v1/timeserieswindow`
+  - クエリ: `query`, `startMs`, `endMs`, `resolution`
+  - ロールアップは固定 (Gauge: 平均, Counter: 合計, Cumulative Counter: 最大)
+- **メトリクス/メタデータ検索** (Read only):
+  - `GET https://api.{REALM}.signalfx.com/v2/metric` (メトリクス名検索)
+  - `GET https://api.{REALM}.signalfx.com/v2/metrictimeseries` (MTS検索)
+  - `GET https://api.{REALM}.signalfx.com/v2/dimension` (ディメンション検索)
+  - `GET https://api.{REALM}.signalfx.com/v2/tag` (タグ検索)
+
+### 代表的な分析パターン
+
+#### 1. ホストのCPU/メモリ/ディスク/ネットワークを確認
+
+SignalFlowで集約し、期間内の平均やP99を確認する。
+
+```text
+data('cpu.utilization', filter=filter('host.name', 'my-host')).mean().publish('cpu')
+data('memory.utilization', filter=filter('host.name', 'my-host')).mean().publish('mem')
+data('disk.utilization', filter=filter('host.name', 'my-host')).mean().publish('disk')
+data('network.total', filter=filter('host.name', 'my-host')).mean().publish('net')
+```
+
+#### 2. MTSを直接取得して時系列を確認
+
+`timeserieswindow` で対象メトリクスを検索し、短時間の時系列を取得する。
+
+```bash
+GET /v1/timeserieswindow?query=sf_metric:cpu.utilization%20AND%20host.name:my-host&startMs=<start>&endMs=<end>&resolution=60000
+```
+
+#### 3. メトリクス名・ディメンションの探索
+
+インフラメトリクス名やディメンションが不明な場合、メタデータAPIで探索する。
+
+```bash
+GET /v2/metric?query=name:cpu.*
+GET /v2/dimension?query=key:host.name
+GET /v2/metrictimeseries?query=metric:cpu.utilization%20AND%20host.name:*
+```
+
+### 注意事項
+
+- `PUT` / `POST` / `DELETE` などの更新系エンドポイントは使用しない
+- 収集対象が不明な場合は、ユーザーに対象ホスト名・クラスタ名・タグを確認する
+- 解析はAPIから取得したデータのみで行い、データ送信・更新は行わない
+
 ## デバッグワークフロー
 
 1. **サービス健全性を確認**: `get_service_metrics.py --metric error-rate` で全サービスのエラー率を確認
@@ -140,7 +196,8 @@ python3 scripts/get_service_metrics.py --environment production --metric through
 3. **サービス依存関係を調査**: `get_topology.py --service <name>` で上流・下流を確認
 4. **問題のトレースを特定**: トレースIDを取得
 5. **トレース詳細を取得**: `get_trace.py` でスパン一覧を確認
-6. **環境比較**: 異なる `--environment` で結果を比較
+6. **インフラ健全性を確認**: CPU/メモリ/ディスク/ネットワークの異常値を確認
+7. **環境比較**: 異なる `--environment` で結果を比較
 
 ## APIリファレンス
 
@@ -148,3 +205,6 @@ python3 scripts/get_service_metrics.py --environment production --metric through
 - OpenAPI定義（詳細）:
   - [references/apm_service_topology-latest.json](references/apm_service_topology-latest.json)
   - [references/trace_id-latest.json](references/trace_id-latest.json)
+  - SignalFlow: https://dev.splunk.com/observability/reference/api/signalflow/latest
+  - Retrieve metric time series (MTS): https://dev.splunk.com/observability/reference/api/retrieve_timeserieswindow/latest
+  - Metrics metadata: https://dev.splunk.com/observability/reference/api/metrics_metadata/latest
