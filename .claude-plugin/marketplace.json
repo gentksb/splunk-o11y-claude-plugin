@@ -12,7 +12,7 @@
       "name": "splunk-o11y",
       "source": "./",
       "description": "Retrieve service topology, traces, and service metrics via Splunk Observability Cloud APM APIs",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "repository": "https://github.com/gentksb/splunk-o11y-claude-plugin.git",
       "tags": [
         "splunk",
