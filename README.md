@@ -2,6 +2,8 @@
 
 A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin that provides Splunk Observability Cloud APM capabilities. Retrieve service topology, traces, and service metrics (error rate, latency, throughput) directly from your Claude Code sessions.
 
+[日本語Doc](#日本語ドキュメント-japanese)
+
 ## Features
 
 - **Service Topology** - Visualize service dependencies and relationships within your APM environment
