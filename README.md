@@ -43,15 +43,6 @@ claude plugin install splunk-o11y@splunk-o11y --scope project
 
 After installing the plugin, configure your Splunk credentials in `settings.local.json`. This file is excluded from version control by Claude Code, keeping your credentials safe.
 
-**Choose the appropriate scope:**
-
-| Scope | Configuration file |
-|-------|-------------------|
-| User scope (`~/.claude/skills/`) | `~/.claude/settings.local.json` |
-| Project scope (`.claude/skills/`) | `<project>/.claude/settings.local.json` |
-
-**Add the following to your `settings.local.json`:**
-
 ```json
 {
   "env": {
@@ -88,13 +79,13 @@ Get the full service topology for an environment:
 
 This runs:
 ```bash
-python scripts/get_topology.py --environment production
+python3 scripts/get_topology.py --environment production
 ```
 
 Get dependencies for a specific service:
 
 ```bash
-python scripts/get_topology.py --environment production --service my-service
+python3 scripts/get_topology.py --environment production --service my-service
 ```
 
 ### Trace Retrieval
@@ -107,17 +98,17 @@ Retrieve trace data by trace ID:
 
 This runs:
 ```bash
-python scripts/get_trace.py abc123def456
+python3 scripts/get_trace.py abc123def456
 ```
 
 List segments or get a specific segment:
 
 ```bash
 # List segments
-python scripts/get_trace.py abc123def456 --segments
+python3 scripts/get_trace.py abc123def456 --segments
 
 # Get specific segment by timestamp
-python scripts/get_trace.py abc123def456 --segment-timestamp 1704067200000000
+python3 scripts/get_trace.py abc123def456 --segment-timestamp 1704067200000000
 ```
 
 ### Service Metrics
@@ -130,17 +121,17 @@ Query service metrics using SignalFlow API:
 
 This runs:
 ```bash
-python scripts/get_service_metrics.py --environment production --metric error-rate
+python3 scripts/get_service_metrics.py --environment production --metric error-rate
 ```
 
 Other metric types:
 
 ```bash
 # P99 latency for a specific service
-python scripts/get_service_metrics.py --environment production --metric latency --service checkout
+python3 scripts/get_service_metrics.py --environment production --metric latency --service checkout
 
 # Throughput with custom time range
-python scripts/get_service_metrics.py --environment production --metric throughput \
+python3 scripts/get_service_metrics.py --environment production --metric throughput \
     --start-time 2024-01-01T00:00:00Z --end-time 2024-01-01T01:00:00Z
 ```
 
@@ -260,7 +251,7 @@ Splunk Observability Cloud APMの機能をClaude Codeから直接利用できる
 ### インストール
 
 ```bash
-# マーケットプレースを追加
+# マーケットプレイスを追加
 claude plugin marketplace add gentksb/splunk-o11y-claude-plugin
 
 # プラグインをインストール
@@ -280,15 +271,6 @@ claude plugin install splunk-o11y@splunk-o11y
 }
 ```
 
-設定ファイルの場所はインストールスコープによって異なります：
-
-| スコープ | 設定ファイル |
-|---------|------------|
-| ユーザースコープ | `~/.claude/settings.local.json` |
-| プロジェクトスコープ | `<project>/.claude/settings.local.json` |
-
-既存の`settings.local.json`がある場合は、`env`セクションのみ追記・マージしてください。設定後、新しいClaude Codeセッションから環境変数として自動注入されます。
-
 ### 使い方
 
 設定完了後、APM関連の質問（サービストポロジー、トレース、エラー率、レイテンシ、スループットなど）をするとClaude Codeが自動的にこのスキルを使用します。
@@ -297,33 +279,33 @@ claude plugin install splunk-o11y@splunk-o11y
 
 ```bash
 # 全サービスのトポロジー
-python scripts/get_topology.py --environment production
+python3 scripts/get_topology.py --environment production
 
 # 特定サービスの依存関係
-python scripts/get_topology.py --environment production --service my-service
+python3 scripts/get_topology.py --environment production --service my-service
 ```
 
 #### トレース取得
 
 ```bash
 # 最新セグメント取得
-python scripts/get_trace.py <trace-id>
+python3 scripts/get_trace.py <trace-id>
 
 # セグメント一覧
-python scripts/get_trace.py <trace-id> --segments
+python3 scripts/get_trace.py <trace-id> --segments
 ```
 
 #### サービスメトリクス
 
 ```bash
 # エラー率
-python scripts/get_service_metrics.py --environment production --metric error-rate
+python3 scripts/get_service_metrics.py --environment production --metric error-rate
 
 # P99レイテンシ
-python scripts/get_service_metrics.py --environment production --metric latency --service checkout
+python3 scripts/get_service_metrics.py --environment production --metric latency --service checkout
 
 # スループット
-python scripts/get_service_metrics.py --environment production --metric throughput
+python3 scripts/get_service_metrics.py --environment production --metric throughput
 ```
 
 ### セキュリティと透明性

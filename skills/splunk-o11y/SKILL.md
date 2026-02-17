@@ -32,7 +32,11 @@ Splunk Observability CloudのAPM APIとインフラメトリクスAPIを使用�
 }
 ```
 
-既存の `settings.local.json` がある場合は `env` セクションのみ追記・マージすること。設定後、新しいClaude Codeセッションから自動的に環境変数として注入される。
+既存の `settings.local.json` がある場合は `env` セクションに `SF_TOKEN` と `SF_REALM` を追記すること。設定後、新しいClaude Codeセッションから自動的に環境変数として注入される。
+
+> **注意: `env` のスコープ上書き**
+>
+> Claude Codeの `env` セクションは**キー単位のマージではなくオブジェクト全体の上書き**となる。プロジェクトレベルに `env` が存在すると、ユーザーレベルの `env` は全て無視される。**`SF_TOKEN` / `SF_REALM` は、実際に `env` セクションが定義されているスコープのファイルに追記すること。**
 
 ### environment パラメータ
 
